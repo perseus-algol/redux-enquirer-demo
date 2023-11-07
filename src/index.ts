@@ -1,7 +1,7 @@
 import { createAsyncThunk, Action, configureStore, createAction, current, Reducer } from '@reduxjs/toolkit';
 import redux from '@reduxjs/toolkit';
 import { TuiState, createReducer } from './redux-tui/createReducer';
-import { config } from './state/graph';
+import { config } from './state';
 import { Prompt } from './redux-tui/types/interactions';
 import { traverse } from './mock-data/utils/traverse';
 import { castDraft, createDraft } from 'immer';

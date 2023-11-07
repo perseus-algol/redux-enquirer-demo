@@ -1,5 +1,5 @@
-import { Config } from "../redux-tui/types/config";
-import { Form, Input, Prompt, Select, SelectOption, input, seq } from "../redux-tui/types/interactions";
+import { Config } from "./redux-tui/types/config";
+import { Form, Input, Prompt, Select, SelectOption, input, seq } from "./redux-tui/types/interactions";
 
 const questionForm: Form = {
   type: 'form',
