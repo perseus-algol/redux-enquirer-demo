@@ -87,14 +87,6 @@ function isStateFunction<S>(x: unknown): x is () => S {
   return typeof x === 'function'
 }
 
-const getValueByPath_ = (config: ConfigStrict, path: string[]) => path.reduce((acc: Prompt | ConfigStrict | undefined, i) => {
-  if (acc === undefined || isPrompt(acc)) {
-    throw new Error("");
-  }
-  const r = acc.find(j => j.name === i)?.action;
-  return r;
-}, config)
-
 const getTuiInitialState = (normConfig: ConfigStrict): TuiState => {
   const initInteration = getInteraction([{ // ToDo: rewrite
     type: 'configItem',
@@ -134,7 +126,8 @@ const createTuiReducer = <S extends TuiState>(config: ConfigStrict) => {
 export const createReducer = <S extends TuiState>(
   initialState: S | (() => S),
   config: Config,
-  cases: ReducerMapObj<S>
+  cases: ReducerMapObj<S>,
+  additional: Array<(s: S, a: Action) => any>
 ) => {
   const normConfig = normalizeConfig(config);
   const tuiInitial = getTuiInitialState(normConfig);
@@ -155,6 +148,6 @@ export const createReducer = <S extends TuiState>(
       .filter(([path, _]) => isEqualPath(path, [...uptatedState.stack, action.type]))
       .map(([_, r]) => r);
 
-    return caseReducers.reduce(caseReducersReducer<S>(action), uptatedState);
+    return caseReducers.concat(additional).reduce(caseReducersReducer<S>(action), uptatedState);
   }
 }

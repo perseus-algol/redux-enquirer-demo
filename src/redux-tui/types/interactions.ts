@@ -13,6 +13,7 @@ export type SelectOption = {
   name: string,
   message?: string,
   enabled?: boolean,
+  role?: string,
 }
 
 export type Select = PromptBase & {
