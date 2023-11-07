@@ -8,7 +8,7 @@ import { castDraft, createDraft } from 'immer';
 import cloneDeep from 'lodash.clonedeep';
 import { getInteraction } from './redux-tui/config-utils';
 import { Config } from './redux-tui/types/config';
-import * as tui from './redux-tui/render';
+import * as tui from './redux-tui/handleInteraction';
 
 type Tx = string;
 
