@@ -26,6 +26,12 @@ const goBack = (state: State, action: Action): void => {
   }
 }
 
+const exit = (state: State, action: Action): void => {
+  if (action.type === 'exit') {
+    process.exit(0);
+  }
+}
+
 const reducer = createReducer<State>({
   stack: [],
 }, config, {
@@ -34,6 +40,7 @@ const reducer = createReducer<State>({
   }
 }, [
   goBack,
+  exit
 ]);
 
 const store = configureStore<State>({

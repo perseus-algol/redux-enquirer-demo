@@ -16,16 +16,45 @@ const selectItems = {
   }
 };
 
-export const handlePrompt = async (prompt: Prompt): Promise<any> => {
+class CancelError extends Error {
+  constructor(message?: string) {
+    super(message);
+  }
+}
+
+type Result = 
+  | {
+    type: 'success',
+    answer: any
+  }
+  | {
+    type: 'cancelled' | 'exit'
+  }
+
+export const handlePrompt = async (prompt: Prompt): Promise<Result> => {
   if (prompt.type === 'select') {
     prompt.choices.push(selectItems.separator, selectItems.back);
   }
 
-  const whatToPromt = prompt.type === 'sequence'
+  const whatToPromt: any = prompt.type === 'sequence'
     ? prompt.sequence
     : prompt;
 
-  return await enquirer.prompt(whatToPromt as any);
+  let status: Result["type"] = 'success';
+  whatToPromt.onCancel = function () {
+    status = this.state.keypress.sequence === '\x03' ? 'exit' : 'cancelled';
+  }
+
+  try {
+    const answer = await enquirer.prompt(whatToPromt);
+    return { type: 'success', answer }
+  } catch(err) {
+    if (status !== 'success') {
+      return { type: status };
+    } else {
+      throw err;
+    }
+  }
 }
 
 export const handleInteraction = async (prompt?: Prompt, interaction?: Interaction): Promise<any> => {
@@ -36,17 +65,25 @@ export const handleInteraction = async (prompt?: Prompt, interaction?: Interacti
       : undefined;
 
   if (prompt) {
-    const answer = await handlePrompt(prompt);
-    const payload = prompt.type === 'sequence'
-      ? answer
-      : answer[prompt.name];
-    const actionCreator = interaction?.action
-      ? createAsyncThunk(prompt.name, interaction.action)
-      : createAction<any>(
-        prompt.type === 'sequence' 
-          ? prompt.type
-          : answer[prompt.name]
-      );
-    return actionCreator(payload);
+    const result = await handlePrompt(prompt);
+    if (result.type === 'cancelled') {
+      return createAction<void>('back')(); // ToDo: hardcoded action type
+    } else if (result.type === 'exit') {
+      return createAction<void>('exit')(); // ToDo: hardcoded action type
+    } else if (result.type === 'success') { // this redundancy needed for typescript type infering
+      const answer = result.answer;
+      console.log('answer: ', answer);
+      const payload = prompt.type === 'sequence'
+        ? answer
+        : answer[prompt.name];
+      const actionCreator = interaction?.action
+        ? createAsyncThunk(prompt.name, interaction.action)
+        : createAction<any>(
+          prompt.type === 'sequence' 
+            ? prompt.type
+            : answer[prompt.name]
+        );
+      return actionCreator(payload);
+    }
   }
 }
