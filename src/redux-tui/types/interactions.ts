@@ -46,7 +46,7 @@ export type Prompt =
 export type Interaction = {
   type: 'interaction'
   prompt: Prompt,
-  action: any
+  action: (args: any) => void
 }
 
 // Prompt Factories

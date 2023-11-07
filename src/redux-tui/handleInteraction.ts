@@ -13,6 +13,10 @@ const selectItems = {
   back: {
     name: 'back',
     message: 'Back'
+  },
+  exit: {
+    name: 'exit',
+    message: 'Exit'
   }
 };
 
@@ -32,10 +36,6 @@ type Result =
   }
 
 export const handlePrompt = async (prompt: Prompt): Promise<Result> => {
-  if (prompt.type === 'select') {
-    prompt.choices.push(selectItems.separator, selectItems.back);
-  }
-
   const whatToPromt: any = prompt.type === 'sequence'
     ? prompt.sequence
     : prompt;
@@ -65,6 +65,14 @@ export const handleInteraction = async (prompt?: Prompt, interaction?: Interacti
       : undefined;
 
   if (prompt) {
+    if (prompt.type === 'select') {
+      prompt.choices.push(selectItems.separator);
+      if (prompt.name === 'main') { // ToDo: hardcoded value, bad way to know if we are on top. May be we can just use Back and exit in reduccer on condition if stack === []?
+        prompt.choices.push(selectItems.exit);
+      } else {
+        prompt.choices.push(selectItems.back);
+      }
+    }
     const result = await handlePrompt(prompt);
     if (result.type === 'cancelled') {
       return createAction<void>('back')(); // ToDo: hardcoded action type
