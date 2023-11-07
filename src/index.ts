@@ -6,7 +6,7 @@ import { Prompt } from './redux-tui/types/interactions';
 import { traverse } from './mock-data/utils/traverse';
 import { castDraft, createDraft } from 'immer';
 import cloneDeep from 'lodash.clonedeep';
-import { getInteraction, normalizeConfig } from './redux-tui/config-utils';
+import { getInteraction } from './redux-tui/config-utils';
 import { ConfigStrict } from './redux-tui/types/config';
 import * as tui from './redux-tui/render';
 
@@ -16,21 +16,13 @@ type Store = TuiState & {
   oracleTx?: Tx;
 }
 
-// type QuestionsFilter = 'open' | 'completed' | 'all';
-
-// const fetchQuestions = createAsyncThunk('qwd', async (arg: QuestionsFilter) => {
-//   return Promise.resolve([
-//     1,2,3
-//   ]);
-// });
-
 const goToStart = (state: Store) => {
   state.stack = [];
   state.interaction = getInteraction([{ // ToDo: rewrite
     type: 'configItem',
     name: 'main',
     message: 'Start',
-    action: normalizeConfig(config)
+    action: config
   }], ['main']);
 }
 
