@@ -95,19 +95,15 @@ const getValueByPath_ = (config: ConfigStrict, path: string[]) => path.reduce((a
   return r;
 }, config)
 
-const getValueByPath = (config: ConfigStrict, path: string[]): ConfigItemStrict | undefined => {
+const getInteractionCfgByPath = (config: ConfigStrict, path: string[]): ConfigItemStrict | undefined => {
   let list: ConfigStrict = config;
   let node: ConfigItemStrict | undefined;
-  console.log(`path: ${path}`)
   for (let i=0; i < path.length; i++) {
-    const node = list.find(j => j.name === path[i])
-    console.log(node?.name);
+    node = list.find(j => j.name === path[i])
     if (node === undefined) {
-      console.log(`1`)
       return undefined;
     }
     if (!(node.action instanceof Array) && i < path.length-1) {
-      console.log(`2`)
       return undefined;
     }
     list = node.action instanceof Array ? node.action : list;
@@ -136,8 +132,9 @@ const getInteraction = (cfg: ConfigItemStrict) => {
 const createTuiReducer = <S extends TuiState>(config: ConfigStrict) => {
 
   return (state: S, action: Action): S => {
+    console.log('stack', state.stack, 'action', action);
     const path = [...state.stack, action.type];
-    const nextInteractionCfg = getValueByPath(config, path);
+    const nextInteractionCfg = getInteractionCfgByPath(config, path);
     if (nextInteractionCfg === undefined) {
       return state;
     }
