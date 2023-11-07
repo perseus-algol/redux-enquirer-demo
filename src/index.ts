@@ -12,32 +12,31 @@ import * as tui from './redux-tui/render';
 
 type Tx = string;
 
-type Store = TuiState & {
+type State = TuiState & {
   oracleTx?: Tx;
 }
 
-const goToStart = (state: Store): void => {
+const goToStart = (state: State): void => {
   state.stack = [];
 };
 
-const goBack = (state: Store, action: Action) => {
+const goBack = (state: State, action: Action): void => {
   if (action.type === 'back') {
-    console.log('was here');
     state.stack.pop();
   }
 }
 
-const reducer = createReducer<Store>({
+const reducer = createReducer<State>({
   stack: [],
 }, config, {
   oracle: {
-    create: goToStart
+    create: goToStart,
   }
 }, [
   goBack,
 ]);
 
-const store = configureStore<Store>({
+const store = configureStore<State>({
   reducer,
 });
 
