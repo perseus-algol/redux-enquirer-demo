@@ -4,7 +4,7 @@ import { traverse } from "../mock-data/utils/traverse";
 import type { Draft } from 'immer'
 import { isDraft, isDraftable, produce as createNextState } from 'immer'
 import { Prompt, Select } from "./types/interactions";
-import { getInteraction, isPathInConfig } from "./config-utils";
+import { isPathInConfig } from "./config-utils";
 
 export interface TuiState {
   stack: string[];

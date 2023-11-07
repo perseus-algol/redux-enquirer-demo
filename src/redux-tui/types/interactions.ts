@@ -44,6 +44,7 @@ export type Prompt =
 // Interaction
 
 export type Interaction = {
+  type: 'interaction'
   prompt: Prompt,
   action: any
 }

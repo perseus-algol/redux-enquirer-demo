@@ -6,14 +6,12 @@ export const normalizeConfig = (config: ConfigParams): Config => {
   return config.map(item => {
     if (typeof item === 'string') {
       return {
-        type: 'configItem',
         name: item,
       };
     } else if (item instanceof Array) {
       switch (item.length) {
         case 1:
           return {
-            type: 'configItem',
             name: item[0],
           };
 
@@ -23,7 +21,6 @@ export const normalizeConfig = (config: ConfigParams): Config => {
             : getAction(item[1]);
           const message = typeof item[1] === 'string' ? item[1]: undefined;
           return {
-            type: 'configItem',
             name: item[0],
             message,
             action,
@@ -31,7 +28,6 @@ export const normalizeConfig = (config: ConfigParams): Config => {
         
         case 3:
           return {
-            type: 'configItem',
             name: item[0],
             message: item[1],
             action: getAction(item[2]),
@@ -68,7 +64,6 @@ const getInteractionCfgByPath = (config: Config, path: string[]): ConfigItem | u
 export const getInteraction = (config: Config, path: string[]) => {
   const cfg = path.length === 0
     ? { // ToDo: rewrite
-      type: 'configItem',
       name: 'main',
       message: 'Start',
       action: config

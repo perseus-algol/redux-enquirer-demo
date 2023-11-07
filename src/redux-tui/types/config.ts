@@ -6,7 +6,6 @@ type ConfigItemParams =
   | [string, string | Prompt | Interaction | ConfigParams] 
   | [string, string, Prompt | Interaction | ConfigParams]
   | {
-    type: 'configItem',
     name: string,
     message?: string,
     action: Prompt | ConfigParams
@@ -15,7 +14,6 @@ type ConfigItemParams =
 export type ConfigParams = ConfigItemParams[];
 
 export type ConfigItem = {
-  type: 'configItem',
   name: string,
   message?: string,
   action?: Prompt | Interaction | Config
