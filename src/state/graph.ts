@@ -49,7 +49,3 @@ export const config: Config = [
     ]],
   ]]
 ];
-
-const createReducer = (config: Config) => {
-  typeof config
-}

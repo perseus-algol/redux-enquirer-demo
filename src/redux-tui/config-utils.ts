@@ -1,5 +1,5 @@
-import { Config, ConfigStrict } from "./types/config";
-import { Prompt } from "./types/interactions";
+import { Config, ConfigItemStrict, ConfigStrict } from "./types/config";
+import { Prompt, Select } from "./types/interactions";
 
 export const isPrompt = (i: Prompt | Array<any>): i is Prompt => !(i instanceof Array)
 
@@ -51,4 +51,42 @@ export const normalizeConfig = (config: Config): ConfigStrict => {
       throw new Error();
     }
   })
+}
+
+const getInteractionCfgByPath = (config: ConfigStrict, path: string[]): ConfigItemStrict | undefined => {
+  let list: ConfigStrict = config;
+  let node: ConfigItemStrict | undefined;
+  for (let i=0; i < path.length; i++) {
+    node = list.find(j => j.name === path[i])
+    if (node === undefined) {
+      return undefined;
+    }
+    if (!(node.action instanceof Array) && i < path.length-1) {
+      return undefined;
+    }
+    list = node.action instanceof Array ? node.action : list;
+  }
+  return node;
+}
+
+export const getInteraction = (config: ConfigStrict, path: string[]) => {
+  const cfg = getInteractionCfgByPath(config, path);
+  if (cfg === undefined) {
+    return undefined;
+  }
+  if (cfg.action === undefined) {
+    return undefined;
+  } else if (cfg.action instanceof Array) {
+    const select: Select = {
+      type: 'select',
+      name: cfg.name,
+      message: cfg.message,
+      choices: cfg.action.map(i => ({ name: i.name, message: i.message }))
+    }
+    return select;
+  } else if (typeof cfg.action === 'object') {
+    return cfg.action;
+  } else {
+    throw new Error("");
+  }
 }

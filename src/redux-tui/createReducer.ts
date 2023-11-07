@@ -4,7 +4,7 @@ import { traverse } from "../mock-data/utils/traverse";
 import type { Draft } from 'immer'
 import { isDraft, isDraftable, produce as createNextState } from 'immer'
 import { Prompt, Select } from "./types/interactions";
-import { isPrompt, normalizeConfig } from "./config-utils";
+import { getInteraction, isPrompt, normalizeConfig } from "./config-utils";
 
 export interface TuiState {
   stack: any[];
@@ -20,12 +20,12 @@ const isEqualPath = (p1: string[], p2: string[]) => {
   if (p1.length !== p2.length) {
     return false;
   }
-  return p1.every((v, i) => p1[i] === v);
+  return p1.every((v, i) => v === p2[i]);
 }
 
 const flatten = <TState>(cases: ReducerMapObj<TState>) => {
-  const result: Array<[path: string[], reducer: Reducer<TState>]> = [];
-  const isReducer = (value: unknown): value is Reducer<TState> => typeof value === 'function';
+  const result: Array<[path: string[], reducer: (s: TState, a: Action) => any]> = [];
+  const isReducer = (value: unknown): value is (s: TState, a: Action) => any => typeof value === 'function';
   traverse(cases, (_, path, value) => {
     if (isReducer(value)) {
       result.push([path.map(String), value]);
@@ -35,26 +35,26 @@ const flatten = <TState>(cases: ReducerMapObj<TState>) => {
 }
 
 type ReducerMapObj<TState> = { 
-  [TAction in string]: ReducerMapObj<TState> | Reducer<TState>
+  [TAction in string]: ReducerMapObj<TState> | ((s: TState, a: Action) => any)
 }
 
 const caseReducersReducer = <TState extends TuiState>(action: Action) => (
   previousState: TState,
-  caseReducer: Reducer<TState>
+  caseReducer: (s: TState, a: Action) => any
 ): TState => {
   if (caseReducer) {
-    // if (isDraft(previousState)) {
-    //   // If it's already a draft, we must already be inside a `createNextState` call,
-    //   // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
-    //   // inside an existing draft. It's safe to just pass the draft to the mutator.
-    //   const result = caseReducer(previousState, action);
+    if (isDraft(previousState)) {
+      // If it's already a draft, we must already be inside a `createNextState` call,
+      // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
+      // inside an existing draft. It's safe to just pass the draft to the mutator.
+      const result = caseReducer(previousState, action);
 
-    //   if (result === undefined) {
-    //     return previousState
-    //   }
+      if (result === undefined) {
+        return previousState
+      }
 
-    //   return result;
-    // } else if (!isDraftable(previousState)) {
+      return result;
+    } else if (!isDraftable(previousState)) {
       // If state is not draftable (ex: a primitive, such as 0), we want to directly
       // return the caseReducer func and not wrap it with produce.
       const result = caseReducer(previousState, action)
@@ -69,15 +69,15 @@ const caseReducersReducer = <TState extends TuiState>(action: Action) => (
       }
 
       return result;
-    // } else {
-    //   // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
-    //   // than an Immutable<S>, and TypeScript cannot find out how to reconcile
-    //   // these two types.
-    //   return createNextState(previousState, (draft: Draft<TState>) => {
-    //     // @ts-ignore
-    //     return caseReducer(draft, action)
-    //   })
-    // }
+    } else {
+      // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
+      // than an Immutable<S>, and TypeScript cannot find out how to reconcile
+      // these two types.
+      return createNextState(previousState, (draft: Draft<TState>) => {
+        // @ts-ignore
+        return caseReducer(draft, action)
+      })
+    }
   }
 
   return previousState;
@@ -95,66 +95,13 @@ const getValueByPath_ = (config: ConfigStrict, path: string[]) => path.reduce((a
   return r;
 }, config)
 
-const getInteractionCfgByPath = (config: ConfigStrict, path: string[]): ConfigItemStrict | undefined => {
-  let list: ConfigStrict = config;
-  let node: ConfigItemStrict | undefined;
-  for (let i=0; i < path.length; i++) {
-    node = list.find(j => j.name === path[i])
-    if (node === undefined) {
-      return undefined;
-    }
-    if (!(node.action instanceof Array) && i < path.length-1) {
-      return undefined;
-    }
-    list = node.action instanceof Array ? node.action : list;
-  }
-  return node;
-}
-
-const getInteraction = (cfg: ConfigItemStrict) => {
-  if (cfg.action === undefined) {
-    return undefined;
-  } else if (cfg.action instanceof Array) {
-    const select: Select = {
-      type: 'select',
-      name: cfg.name,
-      message: cfg.message,
-      choices: cfg.action.map(i => ({ name: i.name, message: i.message }))
-    }
-    return select;
-  } else if (typeof cfg.action === 'object') {
-    return cfg.action;
-  } else {
-    throw new Error("");
-  }
-}
-
-const createTuiReducer = <S extends TuiState>(config: ConfigStrict) => {
-
-  return (state: S, action: Action): S => {
-    console.log('stack', state.stack, 'action', action);
-    const path = [...state.stack, action.type];
-    const nextInteractionCfg = getInteractionCfgByPath(config, path);
-    if (nextInteractionCfg === undefined) {
-      return state;
-    }
-    const nextInteraction = getInteraction(nextInteractionCfg);
-    const stack = nextInteractionCfg === undefined ? [] : path;
-    return {
-      ...state,
-      stack,
-      interaction: nextInteraction
-    }
-  }
-}
-
 const getTuiInitialState = (normConfig: ConfigStrict): TuiState => {
-  const initInteration = getInteraction({
+  const initInteration = getInteraction([{ // ToDo: rewrite
     type: 'configItem',
     name: 'main',
     message: 'Start',
     action: normConfig
-  });
+  }], ['main']);
 
   if (initInteration === undefined) {
     throw new Error("");
@@ -163,6 +110,24 @@ const getTuiInitialState = (normConfig: ConfigStrict): TuiState => {
   return {
     stack: [],
     interaction: initInteration
+  }
+}
+
+const createTuiReducer = <S extends TuiState>(config: ConfigStrict) => {
+
+  return (state: S, action: Action): S => {
+    const path = [...state.stack, action.type];
+    const nextInteraction = getInteraction(config, path);
+    if (nextInteraction === undefined) {
+      return state;
+    }
+
+    const stack = nextInteraction === undefined ? [] : path;
+    return {
+      ...state,
+      stack,
+      interaction: nextInteraction
+    }
   }
 }
 
@@ -185,11 +150,11 @@ export const createReducer = <S extends TuiState>(
   const tuiReducer = createTuiReducer<S>(normConfig)
 
   return (state: S = getInitialState(), action: Action) => {
+    const uptatedState = tuiReducer(state, action);
     const caseReducers = flatten(cases)
-      .filter(([path, _]) => isEqualPath(path, [...state.stack, action.type]))
+      .filter(([path, _]) => isEqualPath(path, [...uptatedState.stack, action.type]))
       .map(([_, r]) => r);
 
-    const uptatedState = tuiReducer(state, action);
     return caseReducers.reduce(caseReducersReducer<S>(action), uptatedState);
   }
 }
