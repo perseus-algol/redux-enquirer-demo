@@ -45,26 +45,9 @@ const render = async () => {
   console.log(state);
 
   const interactionFromConfig = getInteraction(config, state.stack);
+  const action = await tui.handleInteraction(state.prompt, interactionFromConfig);
 
-  const prompt = state.prompt
-    ? state.prompt 
-    : interactionFromConfig !== undefined
-      ? interactionFromConfig.prompt 
-      : undefined;
-
-  if (prompt) {
-    const answer = await tui.handleInteraction(prompt);
-    const payload = prompt.type === 'sequence'
-      ? answer
-      : answer[prompt.name];
-    const actionCreator = interactionFromConfig?.action
-      ? createAsyncThunk(prompt.name, interactionFromConfig.action)
-      : createAction<any>(
-        prompt.type === 'sequence' 
-          ? prompt.type
-          : answer[prompt.name]
-      );
-    const action = actionCreator(payload);
+  if (action) {
     store.dispatch(action);
   }
 }
