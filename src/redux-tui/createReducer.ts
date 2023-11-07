@@ -1,5 +1,5 @@
 import { Action, Reducer } from "@reduxjs/toolkit";
-import { Config, ConfigItemStrict, ConfigStrict } from "./types/config";
+import { ConfigParams, ConfigItem, Config } from "./types/config";
 import { traverse } from "../mock-data/utils/traverse";
 import type { Draft } from 'immer'
 import { isDraft, isDraftable, produce as createNextState } from 'immer'
@@ -87,12 +87,12 @@ function isStateFunction<S>(x: unknown): x is () => S {
   return typeof x === 'function'
 }
 
-const getTuiInitialState = (normConfig: ConfigStrict): TuiState => {
+const getTuiInitialState = (config: Config): TuiState => {
   const initInteration = getInteraction([{ // ToDo: rewrite
     type: 'configItem',
     name: 'main',
     message: 'Start',
-    action: normConfig
+    action: config
   }], ['main']);
 
   if (initInteration === undefined) {
@@ -105,7 +105,7 @@ const getTuiInitialState = (normConfig: ConfigStrict): TuiState => {
   }
 }
 
-const createTuiReducer = <S extends TuiState>(config: ConfigStrict) => {
+const createTuiReducer = <S extends TuiState>(config: Config) => {
 
   return (state: S, action: Action): S => {
     const path = [...state.stack, action.type];
@@ -125,7 +125,7 @@ const createTuiReducer = <S extends TuiState>(config: ConfigStrict) => {
 
 export const createReducer = <S extends TuiState>(
   initialState: S | (() => S),
-  config: ConfigStrict,
+  config: Config,
   cases: ReducerMapObj<S>,
   additional: Array<(s: S, a: Action) => any>
 ) => {

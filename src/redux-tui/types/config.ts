@@ -3,22 +3,22 @@ import { Prompt, SelectOption } from "./interactions";
 type ConfigItemParams = 
   | string
   | [string]
-  | [string, string | Prompt | Config] 
-  | [string, string, Prompt | Config]
+  | [string, string | Prompt | ConfigParams] 
+  | [string, string, Prompt | ConfigParams]
   | {
     type: 'configItem',
     name: string,
     message?: string,
-    action: Prompt | Config
+    action: Prompt | ConfigParams
   };
 
-export type Config = ConfigItemParams[];
+export type ConfigParams = ConfigItemParams[];
 
-export type ConfigItemStrict = {
+export type ConfigItem = {
   type: 'configItem',
   name: string,
   message?: string,
-  action?: Prompt | ConfigStrict
+  action?: Prompt | Config
 }
 
-export type ConfigStrict = ConfigItemStrict[];
+export type Config = ConfigItem[];

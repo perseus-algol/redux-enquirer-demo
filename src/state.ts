@@ -1,5 +1,5 @@
 import { normalizeConfig } from "./redux-tui/config-utils";
-import { Config } from "./redux-tui/types/config";
+import { ConfigParams } from "./redux-tui/types/config";
 import { Form, Input, Prompt, Select, SelectOption, input, seq } from "./redux-tui/types/interactions";
 
 const questionForm: Form = {
@@ -25,7 +25,7 @@ const outcome: Select = {
   ]
 }
 
-const configSetup: Config = [
+const configSetup: ConfigParams = [
   ['oracle', [
     ['create'],
     ['resolve', [

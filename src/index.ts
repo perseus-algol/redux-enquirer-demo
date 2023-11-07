@@ -7,7 +7,7 @@ import { traverse } from './mock-data/utils/traverse';
 import { castDraft, createDraft } from 'immer';
 import cloneDeep from 'lodash.clonedeep';
 import { getInteraction } from './redux-tui/config-utils';
-import { ConfigStrict } from './redux-tui/types/config';
+import { Config } from './redux-tui/types/config';
 import * as tui from './redux-tui/render';
 
 type Tx = string;

@@ -1,10 +1,10 @@
-import { Config, ConfigItemStrict, ConfigStrict } from "./types/config";
+import { ConfigParams, ConfigItem, Config } from "./types/config";
 import { Prompt, Select } from "./types/interactions";
 
 export const isPrompt = (i: Prompt | Array<any>): i is Prompt => !(i instanceof Array)
 
-export const normalizeConfig = (config: Config): ConfigStrict => {
-  const getAction = (i: Prompt | Config) => isPrompt(i) ? i : normalizeConfig(i);
+export const normalizeConfig = (config: ConfigParams): Config => {
+  const getAction = (i: Prompt | ConfigParams) => isPrompt(i) ? i : normalizeConfig(i);
   return config.map(item => {
     if (typeof item === 'string') {
       return {
@@ -53,9 +53,9 @@ export const normalizeConfig = (config: Config): ConfigStrict => {
   })
 }
 
-const getInteractionCfgByPath = (config: ConfigStrict, path: string[]): ConfigItemStrict | undefined => {
-  let list: ConfigStrict = config;
-  let node: ConfigItemStrict | undefined;
+const getInteractionCfgByPath = (config: Config, path: string[]): ConfigItem | undefined => {
+  let list: Config = config;
+  let node: ConfigItem | undefined;
   for (let i=0; i < path.length; i++) {
     node = list.find(j => j.name === path[i])
     if (node === undefined) {
@@ -69,7 +69,7 @@ const getInteractionCfgByPath = (config: ConfigStrict, path: string[]): ConfigIt
   return node;
 }
 
-export const getInteraction = (config: ConfigStrict, path: string[]) => {
+export const getInteraction = (config: Config, path: string[]) => {
   const cfg = getInteractionCfgByPath(config, path);
   if (cfg === undefined) {
     return undefined;
