@@ -126,6 +126,7 @@ export const createReducer = <S extends TuiState>(
   const tuiReducer = createTuiReducer<S>(normConfig)
 
   return (state: S = getInitialState(), action: Action) => {
+    console.log('action!!!', action);
     const uptatedState = tuiReducer(state, action);
     const caseReducers = flatten(cases)
       .filter(([path, _]) => isEqualPath(path, [...uptatedState.stack, action.type]))

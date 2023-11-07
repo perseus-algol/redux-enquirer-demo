@@ -1,6 +1,6 @@
 import { normalizeConfig } from "./redux-tui/config-utils";
 import { ConfigParams } from "./redux-tui/types/config";
-import { Form, Input, Prompt, Select, SelectOption, input, seq } from "./redux-tui/types/interactions";
+import { Form, Input, Prompt, Select, SelectOption, createInteraction, input, seq } from "./redux-tui/types/interactions";
 
 const questionForm: Form = {
   type: 'form',
@@ -13,6 +13,18 @@ const questionForm: Form = {
     { name: 'dueDate' },
   ]
 }
+
+type QuestionsFilter = 'open' | 'completed' | 'all';
+
+const fetchQuestions = async (form: any) => {
+  return new Promise((res, rej) => {
+    setTimeout(() => {
+      res({...form, tx: '1010101010101010'});
+    }, 1000);
+  });
+};
+
+const questionFormInter = createInteraction(questionForm, fetchQuestions);
 
 const questionId = input('id', 'Question Id');
 
@@ -39,7 +51,7 @@ const configSetup: ConfigParams = [
     ['close'],
   ]],
   ['questions', [
-    ['create', questionForm],
+    ['create', questionFormInter],
     ['delete', questionId],
     ['rmWaitingOps', questionId],
     ['getById', questionId],
