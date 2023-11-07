@@ -8,7 +8,7 @@ import { isPathInConfig } from "./config-utils";
 
 export interface TuiState {
   stack: string[];
-  interaction?: Prompt;
+  prompt?: Prompt;
 }
 
 function freezeDraftable<T>(val: T) {

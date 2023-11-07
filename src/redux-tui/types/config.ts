@@ -1,5 +1,7 @@
 import { Interaction, Prompt, SelectOption } from "./interactions";
 
+// Flexible form for convenient configuration
+
 type ConfigItemParams = 
   | string
   | [string]
@@ -13,10 +15,12 @@ type ConfigItemParams =
 
 export type ConfigParams = ConfigItemParams[];
 
+// Strict Form
+
 export type ConfigItem = {
   name: string,
   message?: string,
-  action?: Prompt | Interaction | Config
+  action?: Interaction | Config
 }
 
 export type Config = ConfigItem[];

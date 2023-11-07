@@ -44,18 +44,34 @@ const render = async () => {
   const state = store.getState();
   console.log(state);
 
-  const action = await tui.handleInteraction(
-    store.dispatch,
-    state.interaction 
-      ? state.interaction 
-      : getInteraction(config, state.stack),
-  )
+  const interactionFromConfig = getInteraction(config, state.stack);
 
-  if (action) {
-    store.dispatch(action);
+  const prompt = state.prompt
+    ? state.prompt 
+    : interactionFromConfig !== undefined
+      ? interactionFromConfig.prompt 
+      : undefined;
+
+  if (prompt) {
+    const answer = await tui.handleInteraction(prompt);
+    if (answer) {
+      const actionType = prompt.type === 'sequence' ? prompt.type : answer[prompt.name];
+      const actionCreator = interactionFromConfig?.action ?? createAction<any>(actionType);
+      const action = actionCreator();
+      store.dispatch(action);
+    }
   }
 }
 
 store.subscribe(render);
 
 render();
+
+
+type QuestionsFilter = 'open' | 'completed' | 'all';
+
+const fetchQuestions = createAsyncThunk('qwd', async (arg: QuestionsFilter) => {
+  return Promise.resolve([
+    1,2,3
+  ]);
+});

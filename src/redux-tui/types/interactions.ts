@@ -30,7 +30,7 @@ export type Form = PromptBase & {
   }>
 }
 
-export type Sequence = {
+export type Sequence = PromptBase & {
   type: 'sequence',
   sequence: Array<Prompt>
 }
@@ -57,7 +57,14 @@ export const input = (name: string, message?: string): Input => ({
   message
 });
 
-export const seq = (prompts: Prompt[]): Sequence => ({
+export const seq = (prompts: Prompt[], name = 'sequence'): Sequence => ({
   type: 'sequence',
+  name,
   sequence: prompts
+});
+
+export const createInteraction = (prompt: Prompt, action: any = undefined): Interaction => ({
+  type: 'interaction',
+  prompt,
+  action
 });

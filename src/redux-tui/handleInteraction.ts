@@ -17,11 +17,7 @@ const selectItems = {
   }
 };
 
-export const handleInteraction = async (dispatch: Dispatch, interaction?: Prompt): Promise<Action | undefined> => {
-  if (!interaction) {
-    return undefined;
-  }
-
+export const handleInteraction = async (interaction: Prompt): Promise<any> => {
   if (interaction.type === 'select') {
     interaction.choices.push(selectItems.separator, selectItems.back);
   }
@@ -30,13 +26,5 @@ export const handleInteraction = async (dispatch: Dispatch, interaction?: Prompt
     ? interaction.sequence
     : interaction;
 
-  const a: any = await prompt(whatToPromt as any);
-  
-  const actionType = interaction.type === 'sequence'
-    ? interaction.type
-    : a[interaction.name];
-
-  const actionCreator = createAction<any>(actionType);
-  const action = actionCreator(a);
-  return action;
+  return await prompt(whatToPromt as any);
 }

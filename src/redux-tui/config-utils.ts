@@ -1,8 +1,13 @@
 import { ConfigParams, ConfigItem, Config } from "./types/config";
-import { Interaction, Prompt, Select } from "./types/interactions";
+import { Interaction, Prompt, Select, createInteraction } from "./types/interactions";
 
 export const normalizeConfig = (config: ConfigParams): Config => {
-  const getAction = (i: Prompt | Interaction | ConfigParams) => i instanceof Array ? normalizeConfig(i) : i;
+  const getAction = (i: Prompt | Interaction | ConfigParams) => i instanceof Array
+    ? normalizeConfig(i)
+    : i.type === 'interaction'
+      ? i
+      : createInteraction(i);
+
   return config.map(item => {
     if (typeof item === 'string') {
       return {
@@ -61,7 +66,7 @@ const getInteractionCfgByPath = (config: Config, path: string[]): ConfigItem | u
   return node;
 }
 
-export const getInteraction = (config: Config, path: string[]) => {
+export const getInteraction = (config: Config, path: string[]): Interaction | undefined => {
   const cfg = path.length === 0
     ? { // ToDo: rewrite
       name: 'main',
@@ -71,7 +76,7 @@ export const getInteraction = (config: Config, path: string[]) => {
     : getInteractionCfgByPath(config, path);
 
   if (cfg === undefined) {
-    return undefined;
+    throw new Error("");
   }
   if (cfg.action === undefined) {
     return undefined;
@@ -82,7 +87,7 @@ export const getInteraction = (config: Config, path: string[]) => {
       message: cfg.message,
       choices: cfg.action.map(i => ({ name: i.name, message: i.message }))
     }
-    return select;
+    return createInteraction(select);
   } else if (typeof cfg.action === 'object') {
     return cfg.action;
   } else {
@@ -91,7 +96,7 @@ export const getInteraction = (config: Config, path: string[]) => {
 }
 
 export const isPathInConfig = (config: Config, path: string[]): boolean => {
-  let current: Config | Prompt | undefined = config;
+  let current: Config | Interaction | undefined = config;
   for (let i=0; i < path.length; i++) {
     if (current === undefined || !(current instanceof Array)) {
       return false;
