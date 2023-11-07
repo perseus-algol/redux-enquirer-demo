@@ -44,12 +44,16 @@ const render = async () => {
   const state = store.getState();
   console.log(state);
 
-  tui.render({
-    dispatch: store.dispatch,
-    interaction: state.interaction 
+  const action = await tui.handleInteraction(
+    store.dispatch,
+    state.interaction 
       ? state.interaction 
       : getInteraction(config, state.stack),
-  })
+  )
+
+  if (action) {
+    store.dispatch(action);
+  }
 }
 
 store.subscribe(render);

@@ -1,4 +1,4 @@
-import { Dispatch, createAction, createAsyncThunk, freeze } from "@reduxjs/toolkit";
+import { Action, Dispatch, createAction, createAsyncThunk, freeze } from "@reduxjs/toolkit";
 import { Prompt } from "./types/interactions";
 import cloneDeep from 'lodash.clonedeep';
 import enquirer from 'enquirer';
@@ -17,9 +17,9 @@ const selectItems = {
   }
 };
 
-const handleInteraction = async (dispatch: Dispatch, interaction?: Prompt) => {
+export const handleInteraction = async (dispatch: Dispatch, interaction?: Prompt): Promise<Action | undefined> => {
   if (!interaction) {
-    return;
+    return undefined;
   }
 
   if (interaction.type === 'select') {
@@ -36,17 +36,7 @@ const handleInteraction = async (dispatch: Dispatch, interaction?: Prompt) => {
     ? interaction.type
     : a[interaction.name];
 
-  const action = createAction<any>(actionType);
-  dispatch(action(a));
-}
-
-export const render = async (p: {
-  dispatch: Dispatch,
-  interaction?: Prompt,
-  display?: string,
-}) => {
-  if (p.display) {
-    console.log(p.display);
-  }
-  await handleInteraction(p.dispatch, cloneDeep(p.interaction));
+  const actionCreator = createAction<any>(actionType);
+  const action = actionCreator(a);
+  return action;
 }
