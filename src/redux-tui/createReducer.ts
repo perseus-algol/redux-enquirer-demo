@@ -4,10 +4,10 @@ import { traverse } from "../mock-data/utils/traverse";
 import type { Draft } from 'immer'
 import { isDraft, isDraftable, produce as createNextState } from 'immer'
 import { Prompt, Select } from "./types/interactions";
-import { getInteraction, isPrompt } from "./config-utils";
+import { getInteraction, isPathInConfig, isPrompt } from "./config-utils";
 
 export interface TuiState {
-  stack: any[];
+  stack: string[];
   interaction?: Prompt;
 }
 
@@ -88,20 +88,8 @@ function isStateFunction<S>(x: unknown): x is () => S {
 }
 
 const getTuiInitialState = (config: Config): TuiState => {
-  const initInteration = getInteraction([{ // ToDo: rewrite
-    type: 'configItem',
-    name: 'main',
-    message: 'Start',
-    action: config
-  }], ['main']);
-
-  if (initInteration === undefined) {
-    throw new Error("");
-  }
-
   return {
     stack: [],
-    interaction: initInteration
   }
 }
 
@@ -109,17 +97,12 @@ const createTuiReducer = <S extends TuiState>(config: Config) => {
 
   return (state: S, action: Action): S => {
     const path = [...state.stack, action.type];
-    const nextInteraction = getInteraction(config, path);
-    if (nextInteraction === undefined) {
-      return state;
-    }
-
-    const stack = nextInteraction === undefined ? [] : path;
-    return {
+    const isInConfig = isPathInConfig(config, path);
+    // console.log(`path: ${path}; isInConfig: ${isInConfig}`);
+    return isInConfig ? {
       ...state,
-      stack,
-      interaction: nextInteraction
-    }
+      stack: path,
+    } : state;
   }
 }
 
@@ -132,12 +115,12 @@ export const createReducer = <S extends TuiState>(
   const normConfig = config;
   const tuiInitial = getTuiInitialState(normConfig);
 
-  let getInitialState: () => S
+  let getInitialState: () => S;
   if (isStateFunction(initialState)) {
-    getInitialState = () => ({ ...tuiInitial, ...initialState() })
+    getInitialState = () => ({ ...tuiInitial, ...initialState() });
   } else {
     const frozenInitialState = { ...tuiInitial, ...initialState }
-    getInitialState = () => frozenInitialState
+    getInitialState = () => frozenInitialState;
   }
 
   const tuiReducer = createTuiReducer<S>(normConfig)

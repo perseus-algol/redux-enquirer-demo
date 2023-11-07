@@ -70,7 +70,15 @@ const getInteractionCfgByPath = (config: Config, path: string[]): ConfigItem | u
 }
 
 export const getInteraction = (config: Config, path: string[]) => {
-  const cfg = getInteractionCfgByPath(config, path);
+  const cfg = path.length === 0
+    ? { // ToDo: rewrite
+      type: 'configItem',
+      name: 'main',
+      message: 'Start',
+      action: config
+    }
+    : getInteractionCfgByPath(config, path);
+
   if (cfg === undefined) {
     return undefined;
   }
@@ -89,4 +97,20 @@ export const getInteraction = (config: Config, path: string[]) => {
   } else {
     throw new Error("");
   }
+}
+
+export const isPathInConfig = (config: Config, path: string[]): boolean => {
+  let current: Config | Prompt | undefined = config;
+  for (let i=0; i < path.length; i++) {
+    if (current === undefined || !(current instanceof Array)) {
+      return false;
+    }
+    const name = path[i];
+    const item: ConfigItem | undefined = current.find(i => i.name === name);
+    if (item === undefined) {
+      return false;
+    }
+    current = item.action;
+  }
+  return true;
 }

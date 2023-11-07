@@ -22,4 +22,6 @@ const fetchQuestions = createAsyncThunk('qwd', async (arg: QuestionsFilter) => {
     1,2,3
   ]);
 });
+
+const isObject = (v: any) => typeof v === 'object' && !(v instanceof Array) && v !== null;
 ```

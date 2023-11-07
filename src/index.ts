@@ -16,14 +16,15 @@ type Store = TuiState & {
   oracleTx?: Tx;
 }
 
-const goToStart = (state: Store) => {
+const goToStart = (state: Store): void => {
   state.stack = [];
-  state.interaction = getInteraction([{ // ToDo: rewrite
-    type: 'configItem',
-    name: 'main',
-    message: 'Start',
-    action: config
-  }], ['main']);
+};
+
+const goBack = (state: Store, action: Action) => {
+  if (action.type === 'back') {
+    console.log('was here');
+    state.stack.pop();
+  }
 }
 
 const reducer = createReducer<Store>({
@@ -33,26 +34,22 @@ const reducer = createReducer<Store>({
     create: goToStart
   }
 }, [
-  (state, action) => {
-    if (action.type === 'back') {
-      console.log('was here');
-      state.stack.pop();
-    }
-  }
+  goBack,
 ]);
 
 const store = configureStore<Store>({
   reducer,
 });
 
-const isObject = (v: any) => typeof v === 'object' && !(v instanceof Array) && v !== null;
-
 const render = async () => {
   const state = store.getState();
   console.log(state);
+
   tui.render({
     dispatch: store.dispatch,
-    interaction: state.interaction,
+    interaction: state.interaction 
+      ? state.interaction 
+      : getInteraction(config, state.stack),
   })
 }
 
