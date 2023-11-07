@@ -1,10 +1,10 @@
-import { Prompt, SelectOption } from "./interactions";
+import { Interaction, Prompt, SelectOption } from "./interactions";
 
 type ConfigItemParams = 
   | string
   | [string]
-  | [string, string | Prompt | ConfigParams] 
-  | [string, string, Prompt | ConfigParams]
+  | [string, string | Prompt | Interaction | ConfigParams] 
+  | [string, string, Prompt | Interaction | ConfigParams]
   | {
     type: 'configItem',
     name: string,
@@ -18,7 +18,7 @@ export type ConfigItem = {
   type: 'configItem',
   name: string,
   message?: string,
-  action?: Prompt | Config
+  action?: Prompt | Interaction | Config
 }
 
 export type Config = ConfigItem[];

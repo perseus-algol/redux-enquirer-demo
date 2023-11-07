@@ -41,6 +41,13 @@ export type Prompt =
   | Form
   | Sequence
 
+// Interaction
+
+export type Interaction = {
+  prompt: Prompt,
+  action: any
+}
+
 // Prompt Factories
 
 export const input = (name: string, message?: string): Input => ({

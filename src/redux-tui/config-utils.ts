@@ -1,10 +1,8 @@
 import { ConfigParams, ConfigItem, Config } from "./types/config";
-import { Prompt, Select } from "./types/interactions";
-
-export const isPrompt = (i: Prompt | Array<any>): i is Prompt => !(i instanceof Array)
+import { Interaction, Prompt, Select } from "./types/interactions";
 
 export const normalizeConfig = (config: ConfigParams): Config => {
-  const getAction = (i: Prompt | ConfigParams) => isPrompt(i) ? i : normalizeConfig(i);
+  const getAction = (i: Prompt | Interaction | ConfigParams) => i instanceof Array ? normalizeConfig(i) : i;
   return config.map(item => {
     if (typeof item === 'string') {
       return {
@@ -42,13 +40,11 @@ export const normalizeConfig = (config: ConfigParams): Config => {
         default:
           throw new Error();
       }
-    } else if (item.type === 'configItem') {
+    } else {
       return {
         ...item,
         action: getAction(item.action),
       };
-    } else {
-      throw new Error();
     }
   })
 }
