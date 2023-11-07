@@ -1,3 +1,4 @@
+import { normalizeConfig } from "./redux-tui/config-utils";
 import { Config } from "./redux-tui/types/config";
 import { Form, Input, Prompt, Select, SelectOption, input, seq } from "./redux-tui/types/interactions";
 
@@ -24,7 +25,7 @@ const outcome: Select = {
   ]
 }
 
-export const config: Config = [
+const configSetup: Config = [
   ['oracle', [
     ['create'],
     ['resolve', [
@@ -49,3 +50,5 @@ export const config: Config = [
     ]],
   ]]
 ];
+
+export const config = normalizeConfig(configSetup);

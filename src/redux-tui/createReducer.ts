@@ -4,7 +4,7 @@ import { traverse } from "../mock-data/utils/traverse";
 import type { Draft } from 'immer'
 import { isDraft, isDraftable, produce as createNextState } from 'immer'
 import { Prompt, Select } from "./types/interactions";
-import { getInteraction, isPrompt, normalizeConfig } from "./config-utils";
+import { getInteraction, isPrompt } from "./config-utils";
 
 export interface TuiState {
   stack: any[];
@@ -125,11 +125,11 @@ const createTuiReducer = <S extends TuiState>(config: ConfigStrict) => {
 
 export const createReducer = <S extends TuiState>(
   initialState: S | (() => S),
-  config: Config,
+  config: ConfigStrict,
   cases: ReducerMapObj<S>,
   additional: Array<(s: S, a: Action) => any>
 ) => {
-  const normConfig = normalizeConfig(config);
+  const normConfig = config;
   const tuiInitial = getTuiInitialState(normConfig);
 
   let getInitialState: () => S
