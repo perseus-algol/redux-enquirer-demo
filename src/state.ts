@@ -1,6 +1,7 @@
 import { normalizeConfig } from "./redux-tui/config-utils";
 import { ConfigParams } from "./redux-tui/types/config";
 import { Form, Input, Prompt, Select, SelectOption, createInteraction, input, seq } from "./redux-tui/types/interactions";
+import * as lib from './lib';
 
 const questionForm: Form = {
   type: 'form',

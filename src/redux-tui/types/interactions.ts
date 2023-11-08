@@ -43,10 +43,10 @@ export type Prompt =
 
 // Interaction
 
-export type Interaction = {
-  type: 'interaction'
+export type PromptWithAction = {
+  type: 'promptWithAction'
   prompt: Prompt,
-  action: (args: any) => void
+  action?: (args: any) => void
 }
 
 // Prompt Factories
@@ -63,8 +63,8 @@ export const seq = (prompts: Prompt[], name = 'sequence'): Sequence => ({
   sequence: prompts
 });
 
-export const createInteraction = (prompt: Prompt, action: any = undefined): Interaction => ({
-  type: 'interaction',
+export const createInteraction = (prompt: Prompt, action: any = undefined): PromptWithAction => ({
+  type: 'promptWithAction',
   prompt,
   action
 });

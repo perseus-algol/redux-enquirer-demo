@@ -1,5 +1,5 @@
 import { Action, Dispatch, createAction, createAsyncThunk, freeze } from "@reduxjs/toolkit";
-import { Interaction, Prompt } from "./types/interactions";
+import { PromptWithAction, Prompt } from "./types/interactions";
 import cloneDeep from 'lodash.clonedeep';
 import enquirer from 'enquirer';
 
@@ -57,7 +57,7 @@ export const handlePrompt = async (prompt: Prompt): Promise<Result> => {
   }
 }
 
-export const handleInteraction = async (prompt?: Prompt, interaction?: Interaction): Promise<any> => {
+export const handleInteraction = async (prompt?: Prompt, interaction?: PromptWithAction): Promise<any> => {
   prompt = prompt
     ? prompt 
     : interaction !== undefined

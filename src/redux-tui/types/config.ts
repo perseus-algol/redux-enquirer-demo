@@ -1,26 +1,34 @@
-import { Interaction, Prompt, SelectOption } from "./interactions";
+import { PromptWithAction, Prompt, SelectOption } from "./interactions";
+
+export type ActionFn = (arg?: any) => void;
+
+export type Interaction = Prompt | PromptWithAction | ActionFn
+
 
 // Flexible form for convenient configuration
 
-type ConfigItemParams = 
+export type Children = Interaction | ConfigParams
+
+export type ConfigItemParams =
   | string
   | [string]
-  | [string, string | Prompt | Interaction | ConfigParams] 
-  | [string, string, Prompt | Interaction | ConfigParams]
+  | [string, string | Children]
+  | [string, string, Children]
   | {
     name: string,
     message?: string,
-    action: Prompt | ConfigParams
+    nextAction: Children
   };
 
 export type ConfigParams = ConfigItemParams[];
 
 // Strict Form
+export type NextAction = PromptWithAction | ActionFn | Config
 
 export type ConfigItem = {
   name: string,
   message?: string,
-  action?: Interaction | Config
+  nextAction?: NextAction
 }
 
 export type Config = ConfigItem[];

@@ -1,53 +1,57 @@
-import { ConfigParams, ConfigItem, Config } from "./types/config";
-import { Interaction, Prompt, Select, createInteraction } from "./types/interactions";
+import { ConfigParams, ConfigItem, Config, ConfigItemParams, Children, Interaction, ActionFn, NextAction } from "./types/config";
+import { PromptWithAction, Prompt, Select, createInteraction } from "./types/interactions";
 
-export const normalizeConfig = (config: ConfigParams): Config => {
-  const getAction = (i: Prompt | Interaction | ConfigParams) => i instanceof Array
-    ? normalizeConfig(i)
-    : i.type === 'interaction'
+const getNextAction = (i: Children): NextAction => i instanceof Array
+  ? normalizeConfig(i)
+  : typeof i === 'function'
+    ? i
+    : i.type === 'promptWithAction'
       ? i
       : createInteraction(i);
 
-  return config.map(item => {
-    if (typeof item === 'string') {
-      return {
-        name: item,
-      };
-    } else if (item instanceof Array) {
-      switch (item.length) {
-        case 1:
-          return {
-            name: item[0],
-          };
+const mapper = (item: ConfigItemParams): ConfigItem => {
+  if (typeof item === 'string') {
+    return {
+      name: item,
+    };
+  } else if (item instanceof Array) {
+    switch (item.length) {
+      case 1:
+        return {
+          name: item[0],
+        };
 
-        case 2:
-          const action = typeof item[1] === 'string' 
-            ? undefined 
-            : getAction(item[1]);
-          const message = typeof item[1] === 'string' ? item[1]: undefined;
-          return {
-            name: item[0],
-            message,
-            action,
-          };
-        
-        case 3:
-          return {
-            name: item[0],
-            message: item[1],
-            action: getAction(item[2]),
-          };
+      case 2:
+        const action = typeof item[1] === 'string' 
+          ? undefined 
+          : getNextAction(item[1]);
+        const message = typeof item[1] === 'string' ? item[1]: undefined;
+        return {
+          name: item[0],
+          message,
+          nextAction: action,
+        };
+      
+      case 3:
+        return {
+          name: item[0],
+          message: item[1],
+          nextAction: getNextAction(item[2]),
+        };
 
-        default:
-          throw new Error();
-      }
-    } else {
-      return {
-        ...item,
-        action: getAction(item.action),
-      };
+      default:
+        throw new Error();
     }
-  })
+  } else {
+    return {
+      ...item,
+      nextAction: getNextAction(item.nextAction),
+    };
+  }
+}
+
+export const normalizeConfig = (config: ConfigParams): Config => {
+  return config.map(mapper)
 }
 
 const getInteractionCfgByPath = (config: Config, path: string[]): ConfigItem | undefined => {
@@ -58,45 +62,45 @@ const getInteractionCfgByPath = (config: Config, path: string[]): ConfigItem | u
     if (node === undefined) {
       return undefined;
     }
-    if (!(node.action instanceof Array) && i < path.length-1) {
+    if (!(node.nextAction instanceof Array) && i < path.length-1) {
       return undefined;
     }
-    list = node.action instanceof Array ? node.action : list;
+    list = node.nextAction instanceof Array ? node.nextAction : list;
   }
   return node;
 }
 
-export const getInteraction = (config: Config, path: string[]): Interaction | undefined => {
-  const cfg = path.length === 0
+export const getInteraction = (config: Config, path: string[]): PromptWithAction | undefined => {
+  const cfg: ConfigItem | undefined = path.length === 0
     ? { // ToDo: rewrite
       name: 'main',
       message: 'Start',
-      action: config
+      nextAction: config
     }
     : getInteractionCfgByPath(config, path);
 
   if (cfg === undefined) {
     throw new Error("");
   }
-  if (cfg.action === undefined) {
+  if (cfg.nextAction === undefined) {
     return undefined;
-  } else if (cfg.action instanceof Array) {
+  } else if (cfg.nextAction instanceof Array) {
     const select: Select = {
       type: 'select',
       name: cfg.name,
       message: cfg.message,
-      choices: cfg.action.map(i => ({ name: i.name, message: i.message }))
+      choices: cfg.nextAction.map(i => ({ name: i.name, message: i.message }))
     }
     return createInteraction(select);
-  } else if (typeof cfg.action === 'object') {
-    return cfg.action;
+  } else if (typeof cfg.nextAction === 'object') {
+    return cfg.nextAction;
   } else {
     throw new Error("");
   }
 }
 
 export const isPathInConfig = (config: Config, path: string[]): boolean => {
-  let current: Config | Interaction | undefined = config;
+  let current: NextAction | undefined = config;
   for (let i=0; i < path.length; i++) {
     if (current === undefined || !(current instanceof Array)) {
       return false;
@@ -106,7 +110,7 @@ export const isPathInConfig = (config: Config, path: string[]): boolean => {
     if (item === undefined) {
       return false;
     }
-    current = item.action;
+    current = item.nextAction;
   }
   return true;
 }
