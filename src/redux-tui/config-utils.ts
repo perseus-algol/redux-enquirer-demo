@@ -54,7 +54,7 @@ export const normalizeConfig = (config: ConfigParams): Config => {
   return config.map(mapper)
 }
 
-const getInteractionCfgByPath = (config: Config, path: string[]): ConfigItem | undefined => {
+export const getInteractionCfgByPath = (config: Config, path: string[]): ConfigItem | undefined => {
   let list: Config = config;
   let node: ConfigItem | undefined;
   for (let i=0; i < path.length; i++) {
@@ -70,18 +70,7 @@ const getInteractionCfgByPath = (config: Config, path: string[]): ConfigItem | u
   return node;
 }
 
-export const getInteraction = (config: Config, path: string[]): PromptWithAction | undefined => {
-  const cfg: ConfigItem | undefined = path.length === 0
-    ? { // ToDo: rewrite
-      name: 'main',
-      message: 'Start',
-      nextAction: config
-    }
-    : getInteractionCfgByPath(config, path);
-
-  if (cfg === undefined) {
-    throw new Error("");
-  }
+export const getInteraction = (cfg: ConfigItem): PromptWithAction | undefined => {
   if (cfg.nextAction === undefined) {
     return undefined;
   } else if (cfg.nextAction instanceof Array) {
@@ -97,6 +86,21 @@ export const getInteraction = (config: Config, path: string[]): PromptWithAction
   } else {
     throw new Error("");
   }
+}
+
+export const getInteractionByPath = (config: Config, path: string[]): PromptWithAction | undefined => {
+  const cfg: ConfigItem | undefined = path.length === 0
+    ? { // ToDo: rewrite
+      name: 'main',
+      message: 'Start',
+      nextAction: config
+    }
+    : getInteractionCfgByPath(config, path);
+
+  if (cfg === undefined) {
+    throw new Error("");
+  }
+  return getInteraction(cfg);
 }
 
 export const isPathInConfig = (config: Config, path: string[]): boolean => {

@@ -5,7 +5,7 @@ import enquirer from 'enquirer';
 
 const { Select, Input, Separator } = (enquirer as any);
 
-const selectItems = {
+export const selectItems = {
   separator: {
     name: 'separator',
     role: 'separator'
@@ -19,6 +19,17 @@ const selectItems = {
     message: 'Exit'
   }
 };
+
+export const enhancePrompt = (prompt: Prompt) => {
+  if (prompt.type === 'select') {
+    prompt.choices.push(selectItems.separator);
+    if (prompt.name === 'main') { // ToDo: hardcoded value, bad way to know if we are on top. May be we can just use Back and exit in reduccer on condition if stack === []?
+      prompt.choices.push(selectItems.exit);
+    } else {
+      prompt.choices.push(selectItems.back);
+    }
+  }
+}
 
 class CancelError extends Error {
   constructor(message?: string) {
@@ -57,41 +68,34 @@ export const handlePrompt = async (prompt: Prompt): Promise<Result> => {
   }
 }
 
-export const handleInteraction = async (prompt?: Prompt, interaction?: PromptWithAction): Promise<any> => {
-  prompt = prompt
-    ? prompt 
-    : interaction !== undefined
-      ? interaction.prompt 
-      : undefined;
+// export const handleInteraction = async (prompt?: Prompt, interaction?: PromptWithAction): Promise<any> => {
+//   prompt = prompt
+//     ? prompt 
+//     : interaction !== undefined
+//       ? interaction.prompt 
+//       : undefined;
 
-  if (prompt) {
-    if (prompt.type === 'select') {
-      prompt.choices.push(selectItems.separator);
-      if (prompt.name === 'main') { // ToDo: hardcoded value, bad way to know if we are on top. May be we can just use Back and exit in reduccer on condition if stack === []?
-        prompt.choices.push(selectItems.exit);
-      } else {
-        prompt.choices.push(selectItems.back);
-      }
-    }
-    const result = await handlePrompt(prompt);
-    if (result.type === 'cancelled') {
-      return createAction<void>('back')(); // ToDo: hardcoded action type
-    } else if (result.type === 'exit') {
-      return createAction<void>('exit')(); // ToDo: hardcoded action type
-    } else if (result.type === 'success') { // this redundancy needed for typescript type infering
-      const answer = result.answer;
-      console.log('answer: ', answer);
-      const payload = prompt.type === 'sequence'
-        ? answer
-        : answer[prompt.name];
-      const actionCreator = interaction?.action
-        ? createAsyncThunk(prompt.name, interaction.action)
-        : createAction<any>(
-          prompt.type === 'sequence' 
-            ? prompt.type
-            : answer[prompt.name]
-        );
-      return actionCreator(payload);
-    }
-  }
-}
+//   if (prompt) {
+//     enhancePrompt(prompt);
+//     const result = await handlePrompt(prompt);
+//     if (result.type === 'cancelled') {
+//       return createAction<void>('back')(); // ToDo: hardcoded action type
+//     } else if (result.type === 'exit') {
+//       return createAction<void>('exit')(); // ToDo: hardcoded action type
+//     } else if (result.type === 'success') { // this redundancy needed for typescript type infering
+//       const answer = result.answer;
+//       console.log('answer: ', answer);
+//       const payload = prompt.type === 'sequence'
+//         ? answer
+//         : answer[prompt.name];
+//       const actionCreator = interaction?.action
+//         ? createAsyncThunk(prompt.name, interaction.action)
+//         : createAction<any>(
+//           prompt.type === 'sequence' 
+//             ? prompt.type
+//             : answer[prompt.name]
+//         );
+//       return actionCreator(payload);
+//     }
+//   }
+// }

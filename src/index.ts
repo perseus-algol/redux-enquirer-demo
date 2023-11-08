@@ -6,9 +6,11 @@ import { Prompt } from './redux-tui/types/interactions';
 import { traverse } from './mock-data/utils/traverse';
 import { castDraft, createDraft } from 'immer';
 import cloneDeep from 'lodash.clonedeep';
-import { getInteraction } from './redux-tui/config-utils';
+import { getInteractionByPath } from './redux-tui/config-utils';
 import { Config } from './redux-tui/types/config';
 import * as tui from './redux-tui/handleInteraction';
+import { ToolkitStore } from '@reduxjs/toolkit/dist/configureStore';
+import { View } from './redux-tui/View';
 
 type Tx = string;
 
@@ -43,22 +45,26 @@ const reducer = createReducer<State>({
   exit
 ]);
 
+
+
 const store = configureStore<State>({
   reducer,
 });
 
-const render = async () => {
-  const state = store.getState();
-  console.log(state);
+// const render = async () => {
+//   const state = store.getState();
+//   console.log(state);
 
-  const interactionFromConfig = getInteraction(config, state.stack);
-  const action = await tui.handleInteraction(state.prompt, interactionFromConfig);
+//   const interactionFromConfig = getInteractionByPath(config, state.stack);
+//   const action = await tui.handleInteraction(state.prompt, interactionFromConfig);
 
-  if (action) {
-    store.dispatch(action);
-  }
-}
+//   if (action) {
+//     store.dispatch(action);
+//   }
+// }
 
-store.subscribe(render);
+const view = new View(config, store);
 
-render();
+store.subscribe(view.render);
+
+view.render();
