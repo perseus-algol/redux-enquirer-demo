@@ -1,51 +1,54 @@
 import { ToolkitStore } from "@reduxjs/toolkit/dist/configureStore";
-import { ActionFn, Config, ConfigItem } from "./types/config";
 import { TuiState } from "./createReducer";
-import redux, { createAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { getInteraction, getInteractionCfgByPath } from "./config-utils";
-import { enhancePrompt, handlePrompt, selectItems } from "./handleInteraction";
-import { Prompt, PromptWithAction, Select } from "./types/interactions";
-import { isObject } from "./utils";
+import redux, { createAction } from '@reduxjs/toolkit';
+import { getInteractionCfgByPath } from "./config-utils";
+import { enhancePrompt, handlePrompt } from "./handleInteraction";
+import { Prompt, Select } from "./types/interactions";
+import { ThunkCreator } from "./types/config-common";
+import { InteractionTree, InteractionTreeItem } from "./types/config-strict";
 
-const handleAnyPrompt = (
+const handleAnyPrompt = <S>(
   prompt: Prompt,
-  actionFn?: ActionFn,
+  thunkCreator?: ThunkCreator<S>,
 ) => (answer: any) => {
   console.log('answer: ', answer);
-  const payload = prompt.type === 'sequence'
-    ? answer
-    : answer[prompt.name];
+  const typePrefix = prompt.name;
+  const payload = answer[prompt.name];
+
+  const actionCreator = thunkCreator
+    ? thunkCreator(typePrefix)
+    : createAction<void>(typePrefix);
   
-  const actionCreator = actionFn
-    ? createAsyncThunk(prompt.name, actionFn)
-    : createAction<any>(
-      prompt.type === 'sequence' 
-        ? prompt.type
-        : answer[prompt.name]
-    );
   return actionCreator(payload);
 }
 
-const handleSelectPrompt = (
+const handleSelectPrompt = <S>(
   select: Select,
-  options: Config,
+  treeItem: InteractionTreeItem<S>,
 ) => (answer: any) => {
-  const actionType = answer[select.name];
-  if (typeof actionType !== 'string') {
+  const typePrefix = answer[select.name];
+  if (typeof typePrefix !== 'string') {
+    throw new Error("");
+  }
+  if (!(treeItem.children instanceof Array)) {
     throw new Error("");
   }
   
-  const selected = options.find(i => i.name === actionType);
-  if (selected && typeof selected.nextAction === 'function') {
-    return createAsyncThunk<void>(actionType, selected.nextAction)();
+  const selected = treeItem.children.find(i => i.name === typePrefix);
+  if (selected) {
+    if (selected.thunk) {
+      return selected.thunk(typePrefix)();
+    } else if (treeItem.thunk) {
+      return treeItem.thunk(typePrefix)();
+    }
   }
 
-  return createAction<void>(actionType)();
+  return createAction<void>(typePrefix)();
 }
 
-export class View {
+export class View<S> {
   constructor(
-    private interactionTree: Config,
+    private interactionTree: InteractionTree<S>,
     private store: ToolkitStore<TuiState, redux.AnyAction, [redux.ThunkMiddleware<TuiState, redux.AnyAction>]>
   ) {}
 
@@ -53,13 +56,13 @@ export class View {
     return this.store.getState();
   }
 
-  private getCfgItem (): ConfigItem {
+  private getCfgItem (): InteractionTreeItem<S> {
     const path = this.state.stack;
-    const cfg: ConfigItem | undefined = path.length === 0
+    const cfg: InteractionTreeItem<S> | undefined = path.length === 0
       ? { // ToDo: rewrite
         name: 'main',
         message: 'Start',
-        nextAction: this.interactionTree
+        children: this.interactionTree
       }
       : getInteractionCfgByPath(this.interactionTree, path);
 
@@ -81,33 +84,45 @@ export class View {
   }
 
   private async handleInteraction () {
-    const cfgItem: ConfigItem = this.getCfgItem();
-    //const interactionFromConfig = getInteraction(cfgItem);
+    const cfgItem: InteractionTreeItem<S> = this.getCfgItem();
 
     if (this.state.prompt) {
       const prompt = this.state.prompt;
       enhancePrompt(prompt);
-      return this.handlePrompt(prompt, handleAnyPrompt(prompt))
-    } else if(cfgItem.nextAction instanceof Array) {
+      return this.handlePrompt(prompt, handleAnyPrompt(prompt));
+    } else if(cfgItem.children instanceof Array) {
       const select: Select = {
         type: 'select',
         name: cfgItem.name,
         message: cfgItem.message,
-        choices: cfgItem.nextAction.map(i => ({ name: i.name, message: i.message }))
+        choices: cfgItem.children.map(i => ({ name: i.name, message: i.message }))
       }
       enhancePrompt(select);
-      return this.handlePrompt(select, handleSelectPrompt(select, cfgItem.nextAction))
-    } else if (typeof cfgItem.nextAction === 'object') {
-      const prompt = cfgItem.nextAction.prompt;
-      return this.handlePrompt(prompt, handleAnyPrompt(prompt, cfgItem.nextAction.action))
+      return this.handlePrompt(select, handleSelectPrompt(select, cfgItem))
+    } else if (
+        typeof cfgItem.children === 'object' 
+        && cfgItem.children.type === 'promptWithAction'
+      ) {
+      const prompt = cfgItem.children.prompt;
+      return this.handlePrompt(prompt, handleAnyPrompt(prompt, cfgItem.children.thunk))
     }
     return undefined;
   }
 
+  private display () {
+    const display = this.state.display;
+    if (display) {
+      const s = typeof display === 'string'
+        ? display
+        : JSON.stringify(display);
+      console.log(s);
+    }
+  }
+
   render = async () => {
-    const state = this.store.getState();
+    this.display();
+
     const action = await this.handleInteraction();
-    
     if (action) {
       this.store.dispatch(action);
     }

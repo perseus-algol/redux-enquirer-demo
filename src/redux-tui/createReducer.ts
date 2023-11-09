@@ -1,19 +1,15 @@
 import { Action, Reducer } from "@reduxjs/toolkit";
-import { ConfigParams, ConfigItem, Config } from "./types/config";
 import { traverse } from "../mock-data/utils/traverse";
 import type { Draft } from 'immer'
 import { isDraft, isDraftable, produce as createNextState } from 'immer'
 import { Prompt, Select } from "./types/interactions";
 import { isPathInConfig } from "./config-utils";
+import { InteractionTree } from "./types/config-strict";
 
 export interface TuiState {
   stack: string[];
+  display?: any;
   prompt?: Prompt;
-}
-
-function freezeDraftable<T>(val: T) {
-  // @ts-ignore
-  return isDraftable(val) ? createNextState(val, () => {}) : val
 }
 
 const isEqualPath = (p1: string[], p2: string[]) => {
@@ -87,28 +83,32 @@ function isStateFunction<S>(x: unknown): x is () => S {
   return typeof x === 'function'
 }
 
-const getTuiInitialState = (config: Config): TuiState => {
+const getTuiInitialState = <S>(config: InteractionTree<S>): TuiState => {
   return {
     stack: [],
   }
 }
 
-const createTuiReducer = <S extends TuiState>(config: Config) => {
+const createTuiReducer = <S extends TuiState>(config: InteractionTree<S>) => {
 
   return (state: S, action: Action): S => {
     const path = [...state.stack, action.type];
     const isInConfig = isPathInConfig(config, path);
     // console.log(`path: ${path}; isInConfig: ${isInConfig}`);
-    return isInConfig ? {
+    if (!isInConfig && !state.display) {
+      return state;
+    }
+    return {
       ...state,
       stack: path,
-    } : state;
+      display: undefined
+    };
   }
 }
 
 export const createReducer = <S extends TuiState>(
   initialState: S | (() => S),
-  config: Config,
+  config: InteractionTree<S>,
   cases: ReducerMapObj<S>,
   additional: Array<(s: S, a: Action) => any>
 ) => {

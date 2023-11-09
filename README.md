@@ -24,4 +24,10 @@ const fetchQuestions = createAsyncThunk('qwd', async (arg: QuestionsFilter) => {
 });
 
 const isObject = (v: any) => typeof v === 'object' && !(v instanceof Array) && v !== null;
+
+function freezeDraftable<T>(val: T) {
+  // @ts-ignore
+  return isDraftable(val) ? createNextState(val, () => {}) : val
+}
 ```
+

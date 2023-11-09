@@ -1,7 +1,22 @@
 import { normalizeConfig } from "./redux-tui/config-utils";
-import { ConfigParams } from "./redux-tui/types/config";
-import { Form, Input, Prompt, Select, SelectOption, createInteraction, input, seq } from "./redux-tui/types/interactions";
+import { Form, Select, input, seq } from "./redux-tui/types/interactions";
 import * as lib from './lib';
+import { TuiState } from "./redux-tui/createReducer";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { ThunkCreator } from "./redux-tui/types/config-common";
+import { TreeConfig } from "./redux-tui/types/config-flexible";
+
+type Tx = string;
+
+export type AppState = TuiState & {
+  oracleTx?: Tx;
+}
+
+type QuestionsFilter = 'open' | 'completed' | 'all';
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Prompts
 
 const questionForm: Form = {
   type: 'form',
@@ -15,20 +30,6 @@ const questionForm: Form = {
   ]
 }
 
-type QuestionsFilter = 'open' | 'completed' | 'all';
-
-const fetchQuestions = async (form: any) => {
-  return new Promise((res, rej) => {
-    setTimeout(() => {
-      res({...form, tx: '1010101010101010'});
-    }, 1000);
-  });
-};
-
-const questionFormInter = createInteraction(questionForm, fetchQuestions);
-
-const questionId = input('id', 'Question Id');
-
 const outcome: Select = {
   type: 'select',
   name: 'outcome',
@@ -38,28 +39,58 @@ const outcome: Select = {
   ]
 }
 
-const configSetup: ConfigParams = [
+const questionId = input('id', 'Question Id');
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Thunks
+
+const oracleCreate: ThunkCreator<AppState> = t => createAsyncThunk(t, lib.oracleCreate)
+
+const oracleResolve: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {}
+
+const resolveInDb: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {}
+
+const questionCreate: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {}
+
+const questionDelete: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {}
+
+const rmWaitingOps: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {}
+
+const getById: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {}
+
+const listQuestions: ThunkCreator<AppState> = t => createAsyncThunk(t, async (filter: QuestionsFilter) => {
+  return lib.listQuestions(filter);
+});
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Config
+
+const configSetup: TreeConfig<AppState> = [
   ['oracle', [
-    ['create'],
-    ['resolve', [
-      'Yes',
-      'No'
+    ['create', oracleCreate],
+    ['resolve', oracleResolve, [
+      ['Yes'],
+      ['No']
     ]],
-    ['resolveInDb', seq([
-      input('id'),
-      outcome,
-    ])],
+    ['resolveInDb', 'Resolve In DB',
+      [seq([
+        input('id'),
+        outcome,
+      ]), resolveInDb]],
     ['close'],
   ]],
   ['questions', [
-    ['create', questionFormInter],
-    ['delete', questionId],
-    ['rmWaitingOps', questionId],
-    ['getById', questionId],
-    ['list', [
-      'open',
-      'completed',
-      'all',
+    ['create', [questionForm, questionCreate]],
+    ['delete', [questionId, questionDelete]],
+    ['rmWaitingOps', 'Remove Waiting Operations',
+      [questionId, rmWaitingOps]],
+    ['getById', 'Get By Id', [questionId, getById]],
+    ['list', listQuestions, [
+      ['open'],
+      ['completed'],
+      ['all'],
     ]],
   ]]
 ];

@@ -24,48 +24,57 @@ const delayMs = 1000;
 
 const txHash = () => faker.string.hexadecimal({length: 64, prefix: ''});
 
-const txPromise: Promise<Tx> = new Promise((res, _) => {
+const txPromise = (): Promise<Tx> => new Promise((res, _) => {
   setTimeout(() => res({ tx: txHash() }), delayMs);
 })
 
-const voidPromise: Promise<void> = new Promise((res, _) => {
+const voidPromise = (): Promise<void> => new Promise((res, _) => {
   setTimeout(() => res(), delayMs);
 })
 
 // Oracle
 
-export const oracleCreate = txPromise;
+export const oracleCreate = async (): Promise<Tx> => {
+  console.log('oracleCreate...');
+  return txPromise();
+};
 
 export const oracleResolve = async (oracle: string, outcome: OutcomeResolution): Promise<Tx> => {
-  console.log('');
-  return txPromise;
+  console.log('oracleResolve...', oracle, outcome);
+  return txPromise();
 }
 
 export const updateOutcomeInDb = async (questionID: string, outcome: OutcomeResolution): Promise<void> => {
-  return voidPromise;
+  console.log('updateOutcomeInDb...', questionID, outcome);
+  return voidPromise();
 }
 
 export const oracleClose = async (oracle: string) => {
-  return txPromise;
+  console.log('oracleClose...', oracle);
+  return txPromise();
 }
 
 // Questions
 
 export const questionCreate = async (question: Question): Promise<QuestionCreateResult> => {
+  console.log('questionCreate...', question);
   return new Promise((res, _) => {
     setTimeout(() => res({ tx: txHash(), questionID: question.questionID }), delayMs);
   })
 }
 
 export const questionDelete = async (questionID: string) => {
+  console.log('questionDelete...', questionID);
   return voidPromise;
 }
 
 export const removeWaitingOperations = async (questionID: string) => {
+  console.log('removeWaitingOperations...', questionID);
   return voidPromise;
 }
 
 export const getQuestionById = async (questionID: string): Promise<Question> => {
+  console.log('getQuestionById...', questionID);
   return new Promise((res, _) => {
     setTimeout(() => {
       const result = mockQuestions.find(i => i.questionID === questionID);
@@ -78,6 +87,7 @@ export const getQuestionById = async (questionID: string): Promise<Question> => 
 }
 
 export const listQuestions = async (filter: 'all' | 'open' | 'completed' = 'all'): Promise<Question[]> => {
+  console.log('listQuestions...', filter);
   return new Promise((res, _) => {
     setTimeout(() => {
       const result = filter === 'all' 

@@ -1,67 +1,54 @@
-import { createAsyncThunk, Action, configureStore, createAction, current, Reducer } from '@reduxjs/toolkit';
-import redux from '@reduxjs/toolkit';
+import { Action, configureStore, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
 import { TuiState, createReducer } from './redux-tui/createReducer';
-import { config } from './state';
-import { Prompt } from './redux-tui/types/interactions';
-import { traverse } from './mock-data/utils/traverse';
-import { castDraft, createDraft } from 'immer';
-import cloneDeep from 'lodash.clonedeep';
-import { getInteractionByPath } from './redux-tui/config-utils';
-import { Config } from './redux-tui/types/config';
-import * as tui from './redux-tui/handleInteraction';
-import { ToolkitStore } from '@reduxjs/toolkit/dist/configureStore';
+import { AppState, config } from './state';
 import { View } from './redux-tui/View';
 
-type Tx = string;
 
-type State = TuiState & {
-  oracleTx?: Tx;
-}
+/////////////////////////////////////////////////////////////////////////////////////////
+// Reducers
 
-const goToStart = (state: State): void => {
+const goToStart = (state: AppState): void => {
   state.stack = [];
 };
 
-const goBack = (state: State, action: Action): void => {
+const goBack = (state: AppState, action: Action): void => {
   if (action.type === 'back') {
     state.stack.pop();
   }
 }
 
-const exit = (state: State, action: Action): void => {
+const exit = (state: AppState, action: Action): void => {
   if (action.type === 'exit') {
     process.exit(0);
   }
 }
 
-const reducer = createReducer<State>({
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Root Reducer
+
+const reducer = createReducer<AppState>({
   stack: [],
 }, config, {
   oracle: {
-    create: goToStart,
+    'create/fulfilled': (s, action) => {
+      const a = action as PayloadAction<{tx: string}>; // ToDo: improve type inference in createReducer
+      s.oracleTx = a.payload.tx;
+    },
   }
 }, [
   goBack,
-  exit
+  exit,
+
 ]);
 
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// Store Configuration
 
-const store = configureStore<State>({
+const store = configureStore<AppState>({
   reducer,
 });
-
-// const render = async () => {
-//   const state = store.getState();
-//   console.log(state);
-
-//   const interactionFromConfig = getInteractionByPath(config, state.stack);
-//   const action = await tui.handleInteraction(state.prompt, interactionFromConfig);
-
-//   if (action) {
-//     store.dispatch(action);
-//   }
-// }
 
 const view = new View(config, store);
 
