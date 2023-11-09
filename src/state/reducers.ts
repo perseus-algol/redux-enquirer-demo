@@ -30,10 +30,11 @@ export const reducer = createReducer<AppState>({
     'create/fulfilled': (s, action) => {
       const a = action as PayloadAction<{tx: string}>; // ToDo: improve type inference in createReducer
       s.oracleTx = a.payload.tx;
+      s.stack = [];
+      s.display = a.payload;
     },
   }
 }, [
   goBack,
   exit,
-
 ]);

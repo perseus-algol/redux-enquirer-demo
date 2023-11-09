@@ -95,12 +95,20 @@ const createTuiReducer = <S extends TuiState>(config: InteractionTree<S>) => {
     const path = [...state.stack, action.type];
     const isInConfig = isPathInConfig(config, path);
     // console.log(`path: ${path}; isInConfig: ${isInConfig}`);
+    
+    if (action.type === 'tui') {
+      return {
+        ...state,
+        ...((action as any).payload as TuiState),
+      }
+    }
+    
     if (!isInConfig && !state.display) {
       return state;
     }
     return {
       ...state,
-      stack: path,
+      stack: isInConfig ? path : state.stack,
       display: undefined
     };
   }
@@ -126,7 +134,7 @@ export const createReducer = <S extends TuiState>(
   const tuiReducer = createTuiReducer<S>(normConfig)
 
   return (state: S = getInitialState(), action: Action) => {
-    console.log('action!!!', action);
+    // console.log('[DEBUG] action', action);
     const uptatedState = tuiReducer(state, action);
     const caseReducers = flatten(cases)
       .filter(([path, _]) => isEqualPath(path, [...uptatedState.stack, action.type]))

@@ -11,9 +11,9 @@ const handleAnyPrompt = <S>(
   prompt: Prompt,
   thunkCreator?: ThunkCreator<S>,
 ) => (answer: any) => {
-  console.log('answer: ', answer);
   const typePrefix = prompt.name;
-  const payload = answer[prompt.name];
+  const payload = typePrefix === 'sequence' ? answer : answer[prompt.name];
+  // console.log('[DEBUG] handleAnyPrompt. ', typePrefix, answer);
 
   const actionCreator = thunkCreator
     ? thunkCreator(typePrefix)
@@ -33,10 +33,10 @@ const handleSelectPrompt = <S>(
   if (!(treeItem.children instanceof Array)) {
     throw new Error("");
   }
-  
+
   const selected = treeItem.children.find(i => i.name === typePrefix);
   if (selected) {
-    if (selected.thunk) {
+    if (selected.thunk && !selected.children) {
       return selected.thunk(typePrefix)();
     } else if (treeItem.thunk) {
       return treeItem.thunk(typePrefix)();
@@ -115,16 +115,21 @@ export class View<S> {
       const s = typeof display === 'string'
         ? display
         : JSON.stringify(display);
-      console.log(s);
+      //console.log(s);
+      process.stdout.write(s);
     }
   }
 
   render = async () => {
+    // console.log('[DEBUG] state', this.state);
     this.display();
-
+    // console.log(this.state);
     const action = await this.handleInteraction();
     if (action) {
+      // console.log('[DEBUG] dispatching action: ', action);
       this.store.dispatch(action);
+    } else {
+      // console.log('[DEBUG] handleInteraction returns undefined. Nothing to dispatch.');
     }
   }
 }

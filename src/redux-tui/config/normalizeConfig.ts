@@ -136,6 +136,7 @@ const mapper = <S>(item: TreeConfigItem<S>): InteractionTreeItem<S> => {
       case 1:
         return {
           name: item[0],
+          message: capital1st(item[0]), // ToDo: Extract this feature from here
         };
 
       case 2:

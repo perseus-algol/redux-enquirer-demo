@@ -1,13 +1,16 @@
 import { faker } from "@faker-js/faker";
 import { mockQuestions } from "./mock-data/questions";
 
-export type Question = {
-  questionID: string,
+export type QuestionNew = {
   question: string,
   description: string,
   categories: string[],
   imageUrl: string,
   dueDate: number,
+}
+
+export type Question = QuestionNew & {
+  questionID: string,
   outcome: "Yes" | "No" | "Undefined",
 }
 
@@ -56,21 +59,25 @@ export const oracleClose = async (oracle: string) => {
 
 // Questions
 
-export const questionCreate = async (question: Question): Promise<QuestionCreateResult> => {
+export const questionCreate = async (question: QuestionNew): Promise<QuestionCreateResult> => {
   console.log('questionCreate...', question);
   return new Promise((res, _) => {
-    setTimeout(() => res({ tx: txHash(), questionID: question.questionID }), delayMs);
+    setTimeout(() => {
+      const i = faker.number.int({min: 0, max: mockQuestions.length-1});
+      const q = mockQuestions[i];
+      res({ tx: txHash(), questionID: q.questionID });
+    }, delayMs);
   })
 }
 
 export const questionDelete = async (questionID: string) => {
   console.log('questionDelete...', questionID);
-  return voidPromise;
+  return voidPromise();
 }
 
 export const removeWaitingOperations = async (questionID: string) => {
   console.log('removeWaitingOperations...', questionID);
-  return voidPromise;
+  return voidPromise();
 }
 
 export const getQuestionById = async (questionID: string): Promise<Question> => {
