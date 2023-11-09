@@ -1,4 +1,4 @@
-import { ThunkCreator } from "./config-common"
+import { ThunkCreator } from "./config-common";
 
 type PromptBase = {
   name: string,
@@ -50,23 +50,3 @@ export type PromptWithAction<S> = {
   prompt: Prompt,
   thunk?: ThunkCreator<S>
 }
-
-// Prompt Factories
-
-export const input = (name: string, message?: string): Input => ({
-  type: 'input',
-  name,
-  message
-});
-
-export const seq = (prompts: Prompt[], name = 'sequence'): Sequence => ({
-  type: 'sequence',
-  name,
-  sequence: prompts
-});
-
-export const createInteraction = <S>(prompt: Prompt, thunk: any = undefined): PromptWithAction<S> => ({
-  type: 'promptWithAction',
-  prompt,
-  thunk,
-});

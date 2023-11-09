@@ -1,11 +1,11 @@
 import { ToolkitStore } from "@reduxjs/toolkit/dist/configureStore";
-import { TuiState } from "./createReducer";
+import { TuiState } from "../createReducer";
 import redux, { createAction } from '@reduxjs/toolkit';
-import { getInteractionCfgByPath } from "./config-utils";
+import { getInteractionCfgByPath } from "../config";
 import { enhancePrompt, handlePrompt } from "./handleInteraction";
-import { Prompt, Select } from "./types/interactions";
-import { ThunkCreator } from "./types/config-common";
-import { InteractionTree, InteractionTreeItem } from "./types/config-strict";
+import { Prompt, Select } from "../config/types/prompts";
+import { ThunkCreator } from "../config/types/config-common";
+import { InteractionTree, InteractionTreeItem } from "../config/types/config-strict";
 
 const handleAnyPrompt = <S>(
   prompt: Prompt,

@@ -1,10 +1,10 @@
-import { Action, Reducer } from "@reduxjs/toolkit";
+import { Action } from "@reduxjs/toolkit";
 import { traverse } from "../mock-data/utils/traverse";
 import type { Draft } from 'immer'
 import { isDraft, isDraftable, produce as createNextState } from 'immer'
-import { Prompt, Select } from "./types/interactions";
-import { isPathInConfig } from "./config-utils";
-import { InteractionTree } from "./types/config-strict";
+import { Prompt } from "./config/types/prompts";
+import { isPathInConfig } from "./config";
+import { InteractionTree } from "./config/types/config-strict";
 
 export interface TuiState {
   stack: string[];

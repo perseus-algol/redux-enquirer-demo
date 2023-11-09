@@ -1,7 +1,7 @@
-import { Action, configureStore, PayloadAction, ThunkAction } from '@reduxjs/toolkit';
-import { TuiState, createReducer } from './redux-tui/createReducer';
+import { Action, configureStore, PayloadAction } from '@reduxjs/toolkit';
+import { createReducer } from './redux-tui/createReducer';
 import { AppState, config } from './state';
-import { View } from './redux-tui/View';
+import { View } from './redux-tui/view/View';
 
 
 /////////////////////////////////////////////////////////////////////////////////////////

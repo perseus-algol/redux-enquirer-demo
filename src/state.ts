@@ -1,10 +1,11 @@
-import { normalizeConfig } from "./redux-tui/config-utils";
-import { Form, Select, input, seq } from "./redux-tui/types/interactions";
+import { normalizeConfig } from "./redux-tui/config";
+import { Form, Select } from "./redux-tui/config/types/prompts";
+import { input, seq } from "./redux-tui/config/prompt-creators";
 import * as lib from './lib';
 import { TuiState } from "./redux-tui/createReducer";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { ThunkCreator } from "./redux-tui/types/config-common";
-import { TreeConfig } from "./redux-tui/types/config-flexible";
+import { ThunkCreator } from "./redux-tui/config/types/config-common";
+import { TreeConfig } from "./redux-tui/config/types/config-flexible";
 
 type Tx = string;
 

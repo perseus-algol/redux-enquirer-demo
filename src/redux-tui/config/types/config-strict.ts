@@ -1,5 +1,5 @@
-import { ThunkCreator } from "./config-common"
-import { PromptWithAction } from "./interactions"
+import { ThunkCreator } from "./config-common";
+import { PromptWithAction } from "./prompts";
 
 export type InteractionTreeItem<S> = {
   name: string,

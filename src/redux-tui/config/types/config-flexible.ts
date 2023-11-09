@@ -1,7 +1,7 @@
 // Flexible form for convenient configuration
 
 import { ThunkCreator } from "./config-common"
-import { Prompt, PromptWithAction } from "./interactions"
+import { Prompt, PromptWithAction } from "./prompts"
 
 /*
 - We have three of options
