@@ -1,5 +1,5 @@
 import { Action } from "@reduxjs/toolkit";
-import { traverse } from "../mock-data/utils/traverse";
+import { traverse } from "../utils/traverse";
 import type { Draft } from 'immer'
 import { isDraft, isDraftable, produce as createNextState } from 'immer'
 import { Prompt } from "./config/types/prompts";

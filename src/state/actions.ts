@@ -2,7 +2,7 @@ import { normalizeConfig } from "../redux-tui/config";
 import { Form, Prompt, Select } from "../redux-tui/config/types/prompts";
 import { input, seq } from "../redux-tui/config/prompt-creators";
 import * as lib from '../lib';
-import { createAction, createAsyncThunk } from "@reduxjs/toolkit";
+import { Action, ThunkDispatch, createAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { ThunkCreator } from "../redux-tui/config/types/config-common";
 import { TreeConfig } from "../redux-tui/config/types/config-flexible";
 import { AppState } from "./state";
@@ -28,6 +28,16 @@ const createFulfilled = <T>(typePrefix: string, payload: T) => {
 
 const displayMsg = (msg: any) => tuiAction({display: msg, stack: []});
 
+const createThunk = <T>(fn: (t: string, p: any) => Promise<T>): ThunkCreator<AppState> => {
+  return t => p => async (dispatch, getState) => {
+    try {
+      const res = await fn(t, p);
+      dispatch(displayMsg(res));
+    } catch (err: any) {
+      dispatch(displayMsg(err.message || `${t} error`));
+    }
+  }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Prompts
@@ -72,7 +82,7 @@ const oracleResolve: ThunkCreator<AppState> = t => p => async (dispatch, getStat
   const state = getState();
   if (state.oracleTx) {
     try {
-      const res = await lib.oracleResolve(state.oracleTx, p);
+      const res = await lib.oracleResolve(state.oracleTx, t as any);
       dispatch(displayMsg(res));
     } catch (err: any) {
       dispatch(displayMsg(err.message || 'oracleResolve error'));
@@ -82,21 +92,14 @@ const oracleResolve: ThunkCreator<AppState> = t => p => async (dispatch, getStat
   }
 }
 
-const updateOutcomeInDb: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {
-  try {
-    const res = await lib.updateOutcomeInDb(p.id, p.outcome);
-    dispatch(tuiAction({display: res, stack: []}));
-  } catch (err: any) {
-    dispatch(displayMsg(err.message || 'updateOutcomeInDb error'));
-  }
-}
+const updateOutcomeInDb: ThunkCreator<AppState> = createThunk((t, p) => lib.updateOutcomeInDb(p.id, p.outcome));
 
 const oracleClose: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {
   const state = getState();
   if (state.oracleTx) {
     try {
       const res = await lib.oracleClose(state.oracleTx);
-      dispatch(displayMsg(res));
+      dispatch(createFulfilled<{tx: string}>(t, res));
     } catch (err: any) {
       dispatch(displayMsg(err.message || 'oracleClose error'));
     }
@@ -108,11 +111,11 @@ const oracleClose: ThunkCreator<AppState> = t => p => async (dispatch, getState)
 const questionCreate: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {
   const state = getState();
   if (state.oracleTx) {
+    const q: lib.QuestionNew = {
+      ...p,
+      categories: (p.categories || '').split(',').map((i: string) => i.trim()),
+    }
     try {
-      const q: lib.QuestionNew = {
-        ...p,
-        categories: p.categories.split(',').map((i: string) => i.trim()),
-      }
       const res = await lib.questionCreate(q);
       dispatch(displayMsg(res));
     } catch (err: any) {
@@ -123,41 +126,13 @@ const questionCreate: ThunkCreator<AppState> = t => p => async (dispatch, getSta
   }
 }
 
-const questionDelete: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {
-  try {
-    const res = await lib.questionDelete(p);
-    dispatch(displayMsg(res));
-  } catch (err: any) {
-    dispatch(displayMsg(err.message || 'questionDelete error'));
-  }
-}
+const questionDelete: ThunkCreator<AppState> = createThunk((t, p) => lib.questionDelete(p));
 
-const rmWaitingOps: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {
-  try {
-    const res = await lib.removeWaitingOperations(p);
-    dispatch(displayMsg(res));
-  } catch (err: any) {
-    dispatch(displayMsg(err.message || 'rmWaitingOps error'));
-  }
-}
+const rmWaitingOps: ThunkCreator<AppState> = createThunk((t, p) => lib.removeWaitingOperations(p));
 
-const getById: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {
-  try {
-    const res = await lib.getQuestionById(p);
-    dispatch(displayMsg(res));
-  } catch (err: any) {
-    dispatch(displayMsg(err.message || 'getById error'));
-  }
-}
+const getById: ThunkCreator<AppState> = createThunk((t, p) => lib.getQuestionById(p));
 
-const listQuestions: ThunkCreator<AppState> = t => p => async (dispatch, getState) => {
-  try {
-    const res = await lib.listQuestions(t as any);
-    dispatch(displayMsg(res));
-  } catch (err: any) {
-    dispatch(displayMsg(err.message || 'listQuestions error'));
-  }
-}
+const listQuestions: ThunkCreator<AppState> = createThunk((t, p) => lib.listQuestions(t as any));
 
 
 /////////////////////////////////////////////////////////////////////////////////////////

@@ -33,6 +33,12 @@ export const reducer = createReducer<AppState>({
       s.stack = [];
       s.display = a.payload;
     },
+    'close/fulfilled': (s, action) => {
+      const a = action as PayloadAction<{tx: string}>;
+      s.oracleTx = undefined;
+      s.stack = [];
+      s.display = a.payload;
+    }
   }
 }, [
   goBack,

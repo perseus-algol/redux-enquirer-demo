@@ -6,6 +6,18 @@ import { enhancePrompt, handlePrompt } from "./handleInteraction";
 import { Prompt, Select } from "../config/types/prompts";
 import { ThunkCreator } from "../config/types/config-common";
 import { InteractionTree, InteractionTreeItem } from "../config/types/config-strict";
+import util from 'node:util';
+
+export const print = (...args: unknown[]) => {
+  const mapped = args.map(a => {
+    if (typeof a === 'string') {
+      return a;
+    }
+    return util.inspect(a, {showHidden: false, depth: null, colors: true});
+  });
+  console.log(...mapped);
+};
+
 
 const handleAnyPrompt = <S>(
   prompt: Prompt,
@@ -114,9 +126,8 @@ export class View<S> {
     if (display) {
       const s = typeof display === 'string'
         ? display
-        : JSON.stringify(display);
-      //console.log(s);
-      process.stdout.write(s);
+        : JSON.stringify(display, null, 2);
+      print(s);
     }
   }
 
