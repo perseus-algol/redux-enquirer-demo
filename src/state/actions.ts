@@ -1,17 +1,11 @@
-import { normalizeConfig } from "./redux-tui/config";
-import { Form, Select } from "./redux-tui/config/types/prompts";
-import { input, seq } from "./redux-tui/config/prompt-creators";
-import * as lib from './lib';
-import { TuiState } from "./redux-tui/createReducer";
+import { normalizeConfig } from "../redux-tui/config";
+import { Form, Select } from "../redux-tui/config/types/prompts";
+import { input, seq } from "../redux-tui/config/prompt-creators";
+import * as lib from '../lib';
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { ThunkCreator } from "./redux-tui/config/types/config-common";
-import { TreeConfig } from "./redux-tui/config/types/config-flexible";
-
-type Tx = string;
-
-export type AppState = TuiState & {
-  oracleTx?: Tx;
-}
+import { ThunkCreator } from "../redux-tui/config/types/config-common";
+import { TreeConfig } from "../redux-tui/config/types/config-flexible";
+import { AppState } from "./state";
 
 type QuestionsFilter = 'open' | 'completed' | 'all';
 
